@@ -1,16 +1,16 @@
-var Sequelize = require('sequelize');
-var db = new Sequelize('postgres://localhost:5432/webcrawler');
+const Sequelize = require('sequelize');
+const db = new Sequelize('postgres://localhost:5432/foogle', { logging: false });
 
-domainSchema = {
+const domainSchema = {
     name: {
         type: Sequelize.STRING,
         allowNull: false
     }
-}
+};
 
-var Domain = db.define('domain', domainSchema)
+const Domain = db.define('domain', domainSchema);
 
-pageSchema = {
+const pageSchema = {
     // defined by <head> <title> title goes here </title> </head>
     title: {
         type: Sequelize.TEXT,
@@ -29,10 +29,21 @@ pageSchema = {
         type: Sequelize.TEXT,
         allowNull: false
     },
-    // The status code returned upon retrieving this page
-}
+};
 
-var Page = db.define('page', pageSchema)
+const Page = db.define('page', pageSchema);
+
+const queueSchema = {
+    uri: {
+        type: Sequelize.TEXT,
+        allowNull: false
+    },
+    origin: {
+        type: Sequelize.TEXT
+    }
+};
+
+const Queue = db.define('queue', queueSchema);
 
 
 Page.belongsToMany(Page, { as: 'outboundLinks', through: 'links', foreignKey: 'linker' });
@@ -44,5 +55,6 @@ Domain.hasMany(Page);
 module.exports = {
     db: db,
     Page: Page,
-    Domain: Domain
-}
+    Domain: Domain,
+    Queue: Queue
+};
