@@ -31,6 +31,9 @@ function addLink(direction, origin, destination) {
     .then(link => {
       return link[0] || origin[methodNames.addLink](destination); // page_instance.addInboundLink(page_instance)
     })
+    .catch(err => {
+      console.error('ruh roh', err);
+    });
 }
 
 function findOrCreatePage(params) {
@@ -84,13 +87,12 @@ function crawl(uri, origin) {
             console.error('halp', err);
           });
       });
-      console.log('array of promises??', linkPromises);
       return Promise.all(linkPromises);
     })
-    .then(() => {
-      console.log('hey guys i got hit');
-      popFromQueue();
-    })
+    // .then(() => {
+    //   console.log('hey guys i got hit');
+    //   popFromQueue();
+    // })
     .catch(err => {
       console.error(err, err.stack);
       process.exit(1);
@@ -100,7 +102,6 @@ function crawl(uri, origin) {
 function popFromQueue() {
   Queue.findAll({ limit: 1, order: [['createdAt']]})
     .then(queue => {
-      console.log('QUEUE ISSSSSS', queue);
       queue = queue[0];
 
       return Promise.all([
@@ -108,20 +109,23 @@ function popFromQueue() {
         queue.destroy()
       ]);
     })
-    // .then(() => {
-    //   console.log('hey guys i got hit');
-    //   popFromQueue();
-    // })
     .catch(err => {
       console.error('nooo', err);
     });
 }
 
-db.sync({ force: true })
-  .then(() => {
-    return Queue.create({ uri: 'http://fullstackacademy.com' })
-      .catch(err => {
-        console.error('why', err);
-      });
-  })
-  .then(() => popFromQueue());
+function run() {
+  return db.sync()
+    .then(() => {
+      return Queue.create({ uri: 'http://www.sentencingproject.org' })
+        .catch(err => {
+          console.error('why', err);
+        });
+    })
+    .then(() => popFromQueue())
+    .catch(err => {
+      console.error('bad news bears', err);
+    });
+}
+
+  module.exports = { run: run };
